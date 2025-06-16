@@ -1,22 +1,25 @@
 FROM python:3.11-slim
 
-# Install dependencies
+# Install build tools
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy source code
-COPY . .
- 
+# Copy requirements first (for caching)
+COPY requirements.txt .
+
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port Flask runs on
+# Now copy the rest of the app
+COPY . .
+
+# Expose port
 EXPOSE 5000
 
-# Run the Flask app
-CMD ["python", "wsgi.py"]
+# Run Flask (make sure host='0.0.0.0' in wsgi.py)
+CMD ["python3", "wsgi.py"]
